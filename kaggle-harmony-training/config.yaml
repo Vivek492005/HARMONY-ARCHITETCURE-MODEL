@@ -1,0 +1,51 @@
+# Kaggle GPU Training Configuration
+training:
+  batch_size: 16  # Larger batch for GPU
+  gradient_accumulation_steps: 1  # No accumulation needed on GPU
+  learning_rate: 5e-4
+  num_epochs: 15
+  warmup_steps: 500
+  weight_decay: 1e-5
+  gradient_clip_norm: 1.0
+  mixed_precision: true  # Enable mixed precision on GPU
+
+model:
+  hidden_size: 512  # Larger model for GPU
+  num_layers: 8
+  num_attention_heads: 8
+  intermediate_size: 2048
+  max_position_embeddings: 512
+  vocab_size: 50257
+  dropout: 0.1
+
+checkpoint_dir: "/kaggle/working/checkpoints"
+state_db_path: "/kaggle/working/state_db.json"
+vector_memory_dir: "/kaggle/working/checkpoints/vector_memory"
+
+# Dataset configurations
+datasets:
+  wikitext_subset_shard: 10  # Use 1/10th of WikiText-103
+  gsm8k_samples: 7500  # Full GSM8K dataset
+  strategyqa_samples: 2000  # Subset of StrategyQA
+  
+# Stage-specific configurations
+stages:
+  stage1:
+    epochs: 10
+    learning_rate: 5e-4
+    batch_size: 8
+    
+  stage3:
+    epochs: 15
+    learning_rate: 1e-4
+    batch_size: 16
+    
+  stage4:
+    epochs: 20
+    learning_rate: 1e-4
+    batch_size: 32
+    
+  stage5:
+    epochs: 10
+    learning_rate: 1e-5
+    batch_size: 8

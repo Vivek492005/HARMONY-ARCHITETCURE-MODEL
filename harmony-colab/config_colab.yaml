@@ -1,0 +1,94 @@
+# Google Colab Training Configuration - HARMONY Model
+# Optimized for free Colab T4 GPU (16GB VRAM)
+
+# Training configuration
+training:
+  batch_size: 8  # Conservative for T4 GPU
+  gradient_accumulation_steps: 2  # Effective batch size = 16
+  learning_rate: 5e-4
+  num_epochs: 10
+  warmup_steps: 500
+  weight_decay: 1e-5
+  gradient_clip_norm: 1.0
+  mixed_precision: true  # Enable FP16 on T4
+  max_grad_norm: 1.0
+
+# Model configuration (optimized for T4 GPU)
+model:
+  hidden_size: 384  # Fits comfortably in 16GB VRAM
+  num_layers: 6
+  num_attention_heads: 6
+  intermediate_size: 1536
+  max_position_embeddings: 512
+  vocab_size: 50257
+  dropout: 0.1
+  use_cache: true
+
+# Paths (Colab-specific)
+checkpoint_dir: "/content/checkpoints"
+state_db_path: "/content/state_db.json"
+vector_memory_dir: "/content/checkpoints/vector_memory"
+log_dir: "/content/logs"
+
+# Dataset configurations (reduced for Colab)
+datasets:
+  # WikiText-103 subset for faster training
+  wikitext:
+    subset_shard: 20  # Use 1/20th of full dataset (~5M tokens)
+    max_tokens: 100000  # Cap at 100K tokens for quick testing
+  
+  # GSM8K for planner training
+  gsm8k:
+    samples: 5000  # Use 5K samples (2/3 of full dataset)
+  
+  # StrategyQA for verifier
+  strategyqa:
+    samples: 1500  # Use 1.5K samples
+
+# Stage-specific configurations
+stages:
+  stage1_backbone:
+    epochs: 8
+    learning_rate: 5e-4
+    batch_size: 8
+    save_every: 2  # Save checkpoint every 2 epochs
+    
+  stage2_retrieval:
+    num_documents: 100  # Seed with 100 documents
+    chunk_size: 500
+    chunk_overlap: 50
+    
+  stage3_planner:
+    epochs: 12
+    learning_rate: 1e-4
+    batch_size: 16
+    action_types: 10
+    
+  stage4_verifier:
+    epochs: 15
+    learning_rate: 1e-4
+    batch_size: 32
+    
+  stage5_joint:
+    epochs: 8
+    learning_rate: 1e-5
+    batch_size: 8
+
+# Memory management
+memory:
+  enable_gradient_checkpointing: true  # Reduce memory usage
+  pin_memory: true  # Faster data loading
+  num_workers: 2  # Data loading workers
+
+# Checkpointing
+checkpointing:
+  save_to_drive: true  # Save checkpoints to Google Drive
+  save_frequency: "epoch"  # Save after each epoch
+  keep_last_n: 3  # Keep only last 3 checkpoints
+  resume_from_latest: true  # Auto-resume from latest checkpoint
+
+# Monitoring
+monitoring:
+  log_gpu_memory: true
+  log_frequency: 100  # Log every 100 steps
+  print_progress: true
